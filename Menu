@@ -118,37 +118,19 @@ UserInputService.InputChanged:Connect(function(input)
     if input == menuDragInput and menuDragging then updateMenu(input) end
 end)
 
--- Trả về 1 bảng tất cả các coin (BasePart) hiện có trên map
-local function getCoins()
+-- 🧭 Cấp 4 - getCoins() tự cập nhật khi có coin spawn/despawn, gần như không lag
+local coinCache = {}
+local lastScan = 0
+local scanInterval = 5 -- chỉ quét lại nếu không có sự kiện spawn trong 5s
+
+-- 🧩 Hàm quét coin ban đầu
+local function scanCoins()
     local coins = {}
     for _, map in pairs(workspace:GetChildren()) do
-        -- bỏ qua Player, Camera, Terrain, Lighting,... chỉ lấy Models/Folder thường chứa map
-        if map:IsA("Model") or map:IsA("Folder") then
-            -- 1) Nếu có CoinContainer chuẩn thì ưu tiên lấy từ đó
-            local container = map:FindFirstChild("CoinContainer")
-            if container then
-                for _, v in pairs(container:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        table.insert(coins, v)
-                    end
-                end
-            else
-                -- 2) Không có container: dò descendant, chọn phần có TouchTransmitter (thường là coin)
-                for _, v in pairs(map:GetDescendants()) do
-                    if v:IsA("BasePart") then
-                        -- nếu phần tử này hoặc con trực tiếp có TouchTransmitter -> khả năng là coin
-                        if v:FindFirstChildWhichIsA("TouchTransmitter") then
-                            table.insert(coins, v)
-                        else
-                            -- một số game đặt TouchTransmitter bên trong child (ví dụ: v.Mesh.TouchTransmitter)
-                            for _, child in pairs(v:GetChildren()) do
-                                if child:IsA("TouchTransmitter") then
-                                    table.insert(coins, v)
-                                    break
-                                end
-                            end
-                        end
-                    end
+        if map:IsA("Model") and not map:FindFirstChildWhichIsA("Humanoid") then
+            for _, obj in pairs(map:GetDescendants()) do
+                if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
+                    table.insert(coins, obj)
                 end
             end
         end
@@ -156,6 +138,31 @@ local function getCoins()
     return coins
 end
 
+-- 🎯 Hàm lấy coin, dùng cache thông minh
+local function getCoins()
+    if tick() - lastScan > scanInterval or #coinCache == 0 then
+        coinCache = scanCoins()
+        lastScan = tick()
+    end
+    return coinCache
+end
+
+-- ⚡ Tự động cập nhật khi có coin mới xuất hiện trong workspace
+workspace.DescendantAdded:Connect(function(obj)
+    if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
+        table.insert(coinCache, obj)
+    end
+end)
+
+-- 🗑️ Tự loại coin khỏi cache khi bị nhặt (xóa khỏi workspace)
+workspace.DescendantRemoving:Connect(function(obj)
+    for i, coin in ipairs(coinCache) do
+        if coin == obj then
+            table.remove(coinCache, i)
+            break
+        end
+    end
+end)
 -- Tìm coin gần nhất dựa trên mảng getCoins()
 local function findNearestCoin()
     local character = LocalPlayer.Character
@@ -197,7 +204,7 @@ local function moveToCoin(coin)
 
     local distance = (hrp.Position - coin.Position).Magnitude
     local speed = 20
-    local time = math.clamp(distance / speed, 0.2, 10)
+    local time = math.clamp(distance / speed, 0.3, 10)
 
     local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
     local finished = false
