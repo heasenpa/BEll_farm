@@ -157,8 +157,8 @@ local function moveToCoin(coin)
     if not hrp or not coin or not coin.Parent then return end
 
     local distance = (hrp.Position - coin.Position).Magnitude
-    local speed = 1
-    local time = math.clamp(distance / speed, 0.1, 1)
+    local speed = 20
+    local time = math.clamp(distance / speed, 0.5, 10000)
 
     local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
     local finished = false
