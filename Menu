@@ -122,11 +122,18 @@ end)
 local farming = false
 
 local function getCoins()
-    for _, map in pairs(workspace:GetChildren()) do
-        if map:FindFirstChild("CoinContainer") then
-            return map.CoinContainer
+    -- Tìm thư mục hoặc model có chứa object tên "Coin"
+    for _, child in pairs(workspace:GetChildren()) do
+        if child:IsA("Folder") or child:IsA("Model") then
+            local coin = child:FindFirstChildWhichIsA("BasePart", true)
+            if coin and coin.Name:lower():find("coin") then
+                return child
+            end
+        elseif child:IsA("BasePart") and child.Name:lower():find("coin") then
+            return workspace
         end
     end
+    return nil
 end
 
 local function findNearestCoin()
@@ -158,7 +165,7 @@ local function moveToCoin(coin)
 
     local distance = (hrp.Position - coin.Position).Magnitude
     local speed = 20
-    local time = math.clamp(distance / speed, 0.5, 10000)
+    local time = math.clamp(distance / speed, 0.5, 10)
 
     local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
     local finished = false
