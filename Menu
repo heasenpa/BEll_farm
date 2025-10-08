@@ -196,6 +196,26 @@ local function findNearestCoin()
     return nearest
 end
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- 🧠 Hàm kiểm tra xem có đang trong round thật hay không
+local function inRound()
+    local gui = LocalPlayer:FindFirstChild("PlayerGui")
+    if not gui then return false end
+
+    -- GUI Game chỉ xuất hiện khi đang trong round
+    local gameUI = gui:FindFirstChild("MainGUI") and gui.MainGUI:FindFirstChild("Game")
+
+    -- Nhân vật phải tồn tại và còn sống
+    local character = LocalPlayer.Character
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local alive = humanoid and humanoid.Health > 0
+
+    -- Phải có GUI Game đang bật và nhân vật còn sống
+    return gameUI ~= nil and gameUI.Enabled == true and alive
+end
+
 local function moveToCoin(coin)
     local character = LocalPlayer.Character
     if not character then return end
@@ -221,11 +241,16 @@ end
 
 local function autoFarm()
     while farming do
-        local coin = findNearestCoin()
-        if coin then
-            moveToCoin(coin)
+        if inRound() then
+            local coin = findNearestCoin()
+            if coin then
+                moveToCoin(coin)
+            else
+                task.wait(0.1)
+            end
         else
-            task.wait(0.1)
+            -- Không trong round thì đợi, không farm
+            task.wait(1)
         end
     end
 end
