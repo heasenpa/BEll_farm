@@ -118,39 +118,71 @@ UserInputService.InputChanged:Connect(function(input)
     if input == menuDragInput and menuDragging then updateMenu(input) end
 end)
 
--- ====== FARM (AutoFarm) ======
-local farming = false
-
--- 🧭 Tự động tìm coin thật trong map (không phụ thuộc tên)
+-- Trả về 1 bảng tất cả các coin (BasePart) hiện có trên map
 local function getCoins()
     local coins = {}
     for _, map in pairs(workspace:GetChildren()) do
-        -- Dò qua tất cả các phần trong map
-        for _, obj in pairs(map:GetDescendants()) do
-            if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
-                -- Nếu là vật thể có thể chạm (nhặt được)
-                table.insert(coins, obj)
+        -- bỏ qua Player, Camera, Terrain, Lighting,... chỉ lấy Models/Folder thường chứa map
+        if map:IsA("Model") or map:IsA("Folder") then
+            -- 1) Nếu có CoinContainer chuẩn thì ưu tiên lấy từ đó
+            local container = map:FindFirstChild("CoinContainer")
+            if container then
+                for _, v in pairs(container:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        table.insert(coins, v)
+                    end
+                end
+            else
+                -- 2) Không có container: dò descendant, chọn phần có TouchTransmitter (thường là coin)
+                for _, v in pairs(map:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        -- nếu phần tử này hoặc con trực tiếp có TouchTransmitter -> khả năng là coin
+                        if v:FindFirstChildWhichIsA("TouchTransmitter") then
+                            table.insert(coins, v)
+                        else
+                            -- một số game đặt TouchTransmitter bên trong child (ví dụ: v.Mesh.TouchTransmitter)
+                            for _, child in pairs(v:GetChildren()) do
+                                if child:IsA("TouchTransmitter") then
+                                    table.insert(coins, v)
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
     end
     return coins
 end
 
+-- Tìm coin gần nhất dựa trên mảng getCoins()
 local function findNearestCoin()
     local character = LocalPlayer.Character
     if not character then return nil end
-    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local hrp = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
+
     local container = getCoins()
-    if not container then return nil end
+    if not container or #container == 0 then
+        -- debug: không tìm thấy coin
+        -- print("getCoins() trả về 0 phần tử")
+        return nil
+    end
 
     local nearest, dist = nil, math.huge
-    for _, coin in pairs(container:GetChildren()) do
-        if coin:IsA("BasePart") and coin.Parent and coin:IsDescendantOf(workspace) then
-            local d = (hrp.Position - coin.Position).Magnitude
-            if d < dist then
-                dist = d
-                nearest = coin
+    for _, coin in pairs(container) do
+        if coin and coin.Parent and coin:IsDescendantOf(workspace) then
+            -- đảm bảo coin còn tồn tại và là basepart
+            if coin:IsA("BasePart") then
+                local ok, cpos = pcall(function() return coin.Position end)
+                if ok and cpos then
+                    local d = (hrp.Position - cpos).Magnitude
+                    if d < dist then
+                        dist = d
+                        nearest = coin
+                    end
+                end
             end
         end
     end
@@ -164,7 +196,7 @@ local function moveToCoin(coin)
     if not hrp or not coin or not coin.Parent then return end
 
     local distance = (hrp.Position - coin.Position).Magnitude
-    local speed = 20
+    local speed = 2
     local time = math.clamp(distance / speed, 0.5, 10)
 
     local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
