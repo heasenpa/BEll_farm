@@ -121,19 +121,19 @@ end)
 -- ====== FARM (AutoFarm) ======
 local farming = false
 
+-- 🧭 Tự động tìm coin thật trong map (không phụ thuộc tên)
 local function getCoins()
-    -- Tìm thư mục hoặc model có chứa object tên "Coin"
-    for _, child in pairs(workspace:GetChildren()) do
-        if child:IsA("Folder") or child:IsA("Model") then
-            local coin = child:FindFirstChildWhichIsA("BasePart", true)
-            if coin and coin.Name:lower():find("coin") then
-                return child
+    local coins = {}
+    for _, map in pairs(workspace:GetChildren()) do
+        -- Dò qua tất cả các phần trong map
+        for _, obj in pairs(map:GetDescendants()) do
+            if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
+                -- Nếu là vật thể có thể chạm (nhặt được)
+                table.insert(coins, obj)
             end
-        elseif child:IsA("BasePart") and child.Name:lower():find("coin") then
-            return workspace
         end
     end
-    return nil
+    return coins
 end
 
 local function findNearestCoin()
