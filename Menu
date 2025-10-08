@@ -337,7 +337,7 @@ task.spawn(function()
         local hours = math.floor(elapsed / 3600)
         local minutes = math.floor((elapsed % 3600) / 60)
         local seconds = math.floor(elapsed % 60)
-        timerLabel.Text = string.format("Time: %02d.%02d.%02d", hours, minutes, seconds)
+        timerLabel.Text = string.format("Time: %02d:%02d:%02d", hours, minutes, seconds)
     end
 end)
 
