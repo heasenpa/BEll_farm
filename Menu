@@ -123,9 +123,10 @@ local farming = false
 
 local function getCoins()
     for _, map in pairs(workspace:GetChildren()) do
-        local coinFolder = map:FindFirstDescendant("CoinContainer")
-        if coinFolder then
-            return coinFolder
+        for _, descendant in pairs(map:GetDescendants()) do
+            if descendant.Name == "Coin_Server" and descendant.Parent then
+                return descendant.Parent
+            end
         end
     end
 end
