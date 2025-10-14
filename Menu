@@ -15,7 +15,7 @@ local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.5, -25, 0.5, -25)
 toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleButton.Image = "rbxassetid://114075478368382"
+toggleButton.Image = "rbxassetid://125193097642816"
 toggleButton.ImageRectOffset = Vector2.new(4, 836)
 toggleButton.ImageRectSize = Vector2.new(36, 36)
 toggleButton.Parent = screenGui
@@ -45,7 +45,7 @@ UIStroke.Parent = menuFrame
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 35)
 title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-title.Text = "My Menu"
+title.Text = "Sì Trây"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextSize = 16
 title.Font = Enum.Font.SourceSansBold
@@ -118,102 +118,37 @@ UserInputService.InputChanged:Connect(function(input)
     if input == menuDragInput and menuDragging then updateMenu(input) end
 end)
 
--- 🧭 Cấp 4 - getCoins() tự cập nhật khi có coin spawn/despawn, gần như không lag
-local coinCache = {}
-local lastScan = 0
-local scanInterval = 5 -- chỉ quét lại nếu không có sự kiện spawn trong 5s
+-- ====== FARM (AutoFarm) ======
+local farming = false
 
--- 🧩 Hàm quét coin ban đầu
-local function scanCoins()
-    local coins = {}
-    for _, map in pairs(workspace:GetChildren()) do
-        if map:IsA("Model") and not map:FindFirstChildWhichIsA("Humanoid") then
-            for _, obj in pairs(map:GetDescendants()) do
-                if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
-                    table.insert(coins, obj)
-                end
-            end
-        end
-    end
-    return coins
-end
-
--- 🎯 Hàm lấy coin, dùng cache thông minh
 local function getCoins()
-    if tick() - lastScan > scanInterval or #coinCache == 0 then
-        coinCache = scanCoins()
-        lastScan = tick()
-    end
-    return coinCache
-end
-
--- ⚡ Tự động cập nhật khi có coin mới xuất hiện trong workspace
-workspace.DescendantAdded:Connect(function(obj)
-    if obj:IsA("BasePart") and obj:FindFirstChildWhichIsA("TouchTransmitter") then
-        table.insert(coinCache, obj)
-    end
-end)
-
--- 🗑️ Tự loại coin khỏi cache khi bị nhặt (xóa khỏi workspace)
-workspace.DescendantRemoving:Connect(function(obj)
-    for i, coin in ipairs(coinCache) do
-        if coin == obj then
-            table.remove(coinCache, i)
-            break
+    for _, map in pairs(workspace:GetChildren()) do
+        local coinFolder = map:FindFirstDescendant("CoinContainer")
+        if coinFolder then
+            return coinFolder
         end
     end
-end)
--- Tìm coin gần nhất dựa trên mảng getCoins()
+end
+
 local function findNearestCoin()
     local character = LocalPlayer.Character
     if not character then return nil end
-    local hrp = character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild("HumanoidRootPart")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-
     local container = getCoins()
-    if not container or #container == 0 then
-        -- debug: không tìm thấy coin
-        -- print("getCoins() trả về 0 phần tử")
-        return nil
-    end
+    if not container then return nil end
 
     local nearest, dist = nil, math.huge
-    for _, coin in pairs(container) do
-        if coin and coin.Parent and coin:IsDescendantOf(workspace) then
-            -- đảm bảo coin còn tồn tại và là basepart
-            if coin:IsA("BasePart") then
-                local ok, cpos = pcall(function() return coin.Position end)
-                if ok and cpos then
-                    local d = (hrp.Position - cpos).Magnitude
-                    if d < dist then
-                        dist = d
-                        nearest = coin
-                    end
-                end
+    for _, coin in pairs(container:GetChildren()) do
+        if coin:IsA("BasePart") and coin.Parent and coin:IsDescendantOf(workspace) then
+            local d = (hrp.Position - coin.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = coin
             end
         end
     end
     return nearest
-end
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- 🧠 Hàm kiểm tra xem có đang trong round thật hay không
-local function inRound()
-    local gui = LocalPlayer:FindFirstChild("PlayerGui")
-    if not gui then return false end
-
-    -- GUI Game chỉ xuất hiện khi đang trong round
-    local gameUI = gui:FindFirstChild("MainGUI") and gui.MainGUI:FindFirstChild("Game")
-
-    -- Nhân vật phải tồn tại và còn sống
-    local character = LocalPlayer.Character
-    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-    local alive = humanoid and humanoid.Health > 0
-
-    -- Phải có GUI Game đang bật và nhân vật còn sống
-    return gameUI ~= nil and gameUI.Enabled == true and alive
 end
 
 local function moveToCoin(coin)
@@ -241,16 +176,11 @@ end
 
 local function autoFarm()
     while farming do
-        if inRound() then
-            local coin = findNearestCoin()
-            if coin then
-                moveToCoin(coin)
-            else
-                task.wait(0.1)
-            end
+        local coin = findNearestCoin()
+        if coin then
+            moveToCoin(coin)
         else
-            -- Không trong round thì đợi, không farm
-            task.wait(1)
+            task.wait(0.1)
         end
     end
 end
@@ -317,7 +247,9 @@ toggleFrame.InputBegan:Connect(function(input)
     end
 end)
 
-setToggle(false) -- Mặc định OFF
+setToggle(true) --(On)
+farming = true
+task.spawn(autoFarm)
 
 
 -- ====== Coin Counter GUI (gắn vào menuFrame) ======
@@ -380,6 +312,7 @@ end
 
 local coinLabelUI = setupCoinGUI()
 hookGameCoinLabel(coinLabelUI)
+
 -- 🌟 Thêm sau phần hookGameCoinLabel(coinLabelUI)
 -- (Dán ngay bên dưới dòng “hookGameCoinLabel(coinLabelUI)”)
 ------------------------------------------------------
