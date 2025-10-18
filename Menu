@@ -274,15 +274,15 @@ end
 
 local function hookGameCoinLabel(label)
     local coinLabel = LocalPlayer:WaitForChild("PlayerGui")
-        :WaitForChild("MainGUI")
-        :WaitForChild("Lobby")
-        :WaitForChild("Dock")
-        :WaitForChild("CoinBags")
+        :WaitForChild("CrossPlatform")
+        :WaitForChild("CurrentEventFrame")
         :WaitForChild("Container")
-        :WaitForChild("Coin")
-        :WaitForChild("CurrencyFrame")
-        :WaitForChild("Icon")
-        :WaitForChild("Coins")
+        :WaitForChild("EventFrames")
+        :WaitForChild("PurchaseCurrency")
+        :WaitForChild("Info")
+        :WaitForChild("Tokens")
+        :WaitForChild("Container")
+        :WaitForChild("TextLabel")
 
     local lastAmount = tonumber(coinLabel.Text) or 0
 
