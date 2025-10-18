@@ -15,7 +15,7 @@ local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.5, -25, 0.5, -25)
 toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-toggleButton.Image = "rbxassetid://3342669505"  
+toggleButton.Image = "rbxassetid://125193097642816"
 toggleButton.ImageRectOffset = Vector2.new(4, 836)
 toggleButton.ImageRectSize = Vector2.new(36, 36)
 toggleButton.Parent = screenGui
@@ -123,10 +123,8 @@ local farming = false
 
 local function getCoins()
     for _, map in pairs(workspace:GetChildren()) do
-        for _, descendant in pairs(map:GetDescendants()) do
-            if descendant.Name == "Coin_Server" and descendant.Parent then
-                return descendant.Parent
-            end
+        if map:FindFirstChild("CoinContainer") then
+            return map.CoinContainer
         end
     end
 end
@@ -334,6 +332,39 @@ timerLabel.TextSize = 16
 timerLabel.Font = Enum.Font.SourceSansBold
 timerLabel.Text = "Time: 00:00:00"
 timerLabel.Parent = menuFrame
+-- ====== COIN PER HOUR (Tốc độ farm trung bình) ======
+local rateLabel = Instance.new("TextLabel")
+rateLabel.Name = "RateLabel"
+rateLabel.Size = UDim2.new(1, -20, 0, 30)
+rateLabel.Position = UDim2.new(0, 10, 0, 170)
+rateLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+rateLabel.BackgroundTransparency = 0.2
+rateLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+rateLabel.TextSize = 16
+rateLabel.Font = Enum.Font.SourceSansBold
+rateLabel.Text = "Rate: 0 / hour"
+rateLabel.Parent = menuFrame
+
+-- Cập nhật tốc độ trung bình mỗi giây
+task.spawn(function()
+    while task.wait(1) do
+        local elapsed = tick() - startTime
+        local hours = elapsed / 3600
+        local total = _G.TotalCoinsFarmed or 0
+        local rate = 0
+        if hours > 0 then
+            rate = total / hours
+        end
+        rateLabel.Text = string.format("Rate: %.1f / hour", rate)
+        if rate < 100 then
+            rateLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+        elseif rate < 300 then
+            rateLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        else
+            rateLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+        end
+    end
+end)
 
 -- Hàm cập nhật thời gian dạng HH.MM.SS
 task.spawn(function()
@@ -351,3 +382,6 @@ LocalPlayer.CharacterAdded:Connect(function()
     local label = setupCoinGUI()
     hookGameCoinLabel(label)
 end)
+
+
+
