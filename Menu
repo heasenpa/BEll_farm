@@ -383,5 +383,3 @@ LocalPlayer.CharacterAdded:Connect(function()
     hookGameCoinLabel(label)
 end)
 
-
-
