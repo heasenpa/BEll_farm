@@ -402,15 +402,28 @@ statusLabel.Text = "Trạng thái: Đang kiểm tra..."
 statusLabel.Parent = menuFrame
 
 -- Hàm kiểm tra xem có map hiện tại không
+-- Lưu vị trí trung tâm của Lobby (cố định)
+local lobbyPos = workspace:WaitForChild("Lobby"):GetPivot().Position
+
+-- Hàm kiểm tra đang trong round (theo khoảng cách + tồn tại map)
 local function inRound()
-	for _, v in pairs(workspace:GetChildren()) do
-		if v:IsA("Model") or v:IsA("Folder") then
-			if v.Name ~= "Lobby" and v:FindFirstChild("CoinContainer") then
-				return true
-			end
-		end
-	end
-	return false
+    local inMap = false
+    for _, v in pairs(workspace:GetChildren()) do
+        if v:IsA("Model") or v:IsA("Folder") then
+            if v.Name ~= "Lobby" and v:FindFirstChild("CoinContainer") then
+                inMap = true
+                break
+            end
+        end
+    end
+
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return false end
+
+    local dist = (hrp.Position - lobbyPos).Magnitude
+    -- Nếu có map + nhân vật cách lobby trên 200 studs => đang trong round
+    return inMap and dist > 200
 end
 
 -- Theo dõi liên tục
