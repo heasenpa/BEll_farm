@@ -119,6 +119,41 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ====== FARM (AutoFarm) ======
+-- ====== CHECK LOBBY STATUS ======
+local paused = true
+local statusGui = Instance.new("TextLabel")
+statusGui.Size = UDim2.new(0, 200, 0, 25)
+statusGui.Position = UDim2.new(0.5, -100, 0, 0)
+statusGui.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+statusGui.BackgroundTransparency = 0.4
+statusGui.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusGui.TextSize = 14
+statusGui.Font = Enum.Font.Gotham
+statusGui.Text = "Đang kiểm tra vị trí..."
+statusGui.Parent = screenGui
+
+-- Vị trí lobby mẫu (tọa độ trong hình bạn gửi)
+local lobbyPos = Vector3.new(-4991.5, 308.8, -16.9)
+
+task.spawn(function()
+	while task.wait(2) do
+		local char = LocalPlayer.Character
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			local dist = (hrp.Position - lobbyPos).Magnitude
+			if dist < 500 then
+				paused = true
+				statusGui.Text = "🏠 Ở Lobby ("..math.floor(dist)..")"
+				statusGui.TextColor3 = Color3.fromRGB(0,255,0)
+			else
+				paused = false
+				statusGui.Text = "🗺️ Trong map ("..math.floor(dist)..")"
+				statusGui.TextColor3 = Color3.fromRGB(255,255,0)
+			end
+		end
+	end
+end)
+
 local farming = false
 
 local function getCoins()
@@ -175,6 +210,7 @@ end
 
 local function autoFarm()
     while farming do
+        if paused then task.wait(1) continue end
         local coin = findNearestCoin()
         if coin then
             moveToCoin(coin)
