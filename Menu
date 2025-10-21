@@ -384,4 +384,67 @@ LocalPlayer.CharacterAdded:Connect(function()
     local label = setupCoinGUI()
     hookGameCoinLabel(label)
 end)
+------------------------------------------------------
+-- 🧭 CHECK ROUND + SỐNG / CHẾT (TỰ DỪNG FARM)
+------------------------------------------------------
 
+-- GUI hiển thị trạng thái
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -20, 0, 30)
+statusLabel.Position = UDim2.new(0, 10, 0, 205)
+statusLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+statusLabel.BackgroundTransparency = 0.2
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.TextSize = 16
+statusLabel.Font = Enum.Font.SourceSansBold
+statusLabel.Text = "Trạng thái: Đang kiểm tra..."
+statusLabel.Parent = menuFrame
+
+-- Hàm kiểm tra xem có map hiện tại không
+local function inRound()
+	for _, v in pairs(workspace:GetChildren()) do
+		if v:IsA("Model") or v:IsA("Folder") then
+			if v.Name ~= "Lobby" and v:FindFirstChild("CoinContainer") then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- Theo dõi liên tục
+task.spawn(function()
+	while task.wait(2) do
+		local char = LocalPlayer.Character
+		local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+
+		local alive = humanoid and humanoid.Health > 0
+		local round = inRound()
+
+		if round and alive then
+			if not farming then
+				farming = true
+				setToggle(true)
+				task.spawn(autoFarm)
+			end
+			statusLabel.Text = "Trạng thái: 🟢 Đang farm"
+			statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+		else
+			if farming then
+				farming = false
+				setToggle(false)
+			end
+			if not alive then
+				statusLabel.Text = "Trạng thái: ⚰️ Chết / Reset"
+				statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+			elseif not round then
+				statusLabel.Text = "Trạng thái: 🏠 Ở Lobby"
+				statusLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+			else
+				statusLabel.Text = "Trạng thái: ⏸️ Tạm dừng"
+				statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			end
+		end
+	end
+end)
