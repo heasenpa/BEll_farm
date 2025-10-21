@@ -8,8 +8,8 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomMenuGUI"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global  -- ✅ Cho phép đè lên GUI khác
-screenGui.DisplayOrder = 999999  -- ✅ Ưu tiên cao nhất
-screenGui.IgnoreGuiInset = true  -- ✅ Không bị lệch bởi topbar trên mobile
+screenGui.DisplayOrder = 9999  -- ✅ Ưu tiên cao nhất
+
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 -- Nút nhỏ mở menu
