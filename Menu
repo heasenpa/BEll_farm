@@ -398,14 +398,24 @@ totalCoinLabel.Text = "💰 Tổng coin: Đang tải..."
 totalCoinLabel.Parent = menuFrame
 
 -- Cập nhật số coin hiện có trong tài khoản
+-- Cập nhật số coin hiển thị theo GUI
 task.spawn(function()
 	while task.wait(3) do
-		local success, coins = pcall(function()
-			return LocalPlayer:WaitForChild("Data"):WaitForChild("Coins").Value
+		local success, label = pcall(function()
+			return LocalPlayer:WaitForChild("PlayerGui")
+				:WaitForChild("CrossPlatform")
+				:WaitForChild("CurrentEventFrame")
+				:WaitForChild("Container")
+				:WaitForChild("EventFrames")
+				:WaitForChild("PurchaseCurrency")
+				:WaitForChild("Info")
+				:WaitForChild("Tokens")
+				:WaitForChild("Container")
+				:WaitForChild("TextLabel")
 		end)
 
-		if success and coins then
-			totalCoinLabel.Text = "💰 Tổng coin: " .. coins
+		if success and label and label.Text then
+			totalCoinLabel.Text = "💰 Tổng coin: " .. label.Text
 		else
 			totalCoinLabel.Text = "💰 Tổng coin: ???"
 		end
