@@ -384,4 +384,30 @@ LocalPlayer.CharacterAdded:Connect(function()
     local label = setupCoinGUI()
     hookGameCoinLabel(label)
 end)
+-- ====== HIỂN THỊ TỔNG COIN ACC ======
+local totalCoinLabel = Instance.new("TextLabel")
+totalCoinLabel.Name = "TotalCoinLabel"
+totalCoinLabel.Size = UDim2.new(1, -20, 0, 30)
+totalCoinLabel.Position = UDim2.new(0, 10, 0, 205)
+totalCoinLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+totalCoinLabel.BackgroundTransparency = 0.2
+totalCoinLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+totalCoinLabel.TextSize = 16
+totalCoinLabel.Font = Enum.Font.SourceSansBold
+totalCoinLabel.Text = "💰 Tổng coin: Đang tải..."
+totalCoinLabel.Parent = menuFrame
 
+-- Cập nhật số coin hiện có trong tài khoản
+task.spawn(function()
+	while task.wait(3) do
+		local success, coins = pcall(function()
+			return LocalPlayer:WaitForChild("Data"):WaitForChild("Coins").Value
+		end)
+
+		if success and coins then
+			totalCoinLabel.Text = "💰 Tổng coin: " .. coins
+		else
+			totalCoinLabel.Text = "💰 Tổng coin: ???"
+		end
+	end
+end)
