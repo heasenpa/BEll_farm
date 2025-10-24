@@ -12,14 +12,6 @@ screenGui.DisplayOrder = 9999
 screenGui.IgnoreGuiInset = true
 screenGui.Parent = game:GetService("CoreGui")
 
-task.spawn(function()
-    while task.wait(5) do
-        if screenGui.Parent ~= game:GetService("CoreGui") then
-            screenGui.Parent = game:GetService("CoreGui")
-        end
-    end
-end)
-
 -- Nút nhỏ mở menu
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
