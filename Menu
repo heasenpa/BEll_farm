@@ -5,12 +5,18 @@ local LocalPlayer = Players.LocalPlayer
 
 -- ====== MENU GUI ======
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "CustomMenuGUI"
+screenGui.Name = "MyTopGui"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-screenGui.DisplayOrder = 999999999999999999999999999998888899999999999999999998888888888888899999999999999999999999999999999999999
-screenGui.IgnoreGuiInset = true
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- quan trọng!
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Ví dụ thêm 1 frame / button
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+frame.ZIndex = 9999 -- cực cao để đè mọi thứ khác
+frame.Parent = screenGui
 
 -- Nút nhỏ mở menu
 local toggleButton = Instance.new("ImageButton")
