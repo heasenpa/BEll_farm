@@ -101,23 +101,49 @@ local function updateMenu(input)
         menuStartPos.Y.Scale, menuStartPos.Y.Offset + delta.Y
     )
 end
+-- HUD hiển thị tọa độ khi kéo menu
+local coordHud = Instance.new("TextLabel")
+coordHud.Size = UDim2.new(0, 140, 0, 25)
+coordHud.Position = UDim2.new(0.5, -70, 0, 10)
+coordHud.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+coordHud.BackgroundTransparency = 0.4
+coordHud.TextColor3 = Color3.fromRGB(0, 255, 0)
+coordHud.TextSize = 14
+coordHud.Font = Enum.Font.GothamBold
+coordHud.Text = "X: 0  Y: 0"
+coordHud.Visible = false
+coordHud.ZIndex = 999
+coordHud.Parent = screenGui
+
 title.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        menuDragging = true
-        menuDragStart = input.Position
-        menuStartPos = menuFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then menuDragging = false end
-        end)
-    end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		menuDragging = true
+		menuDragStart = input.Position
+		menuStartPos = menuFrame.Position
+		coordHud.Visible = true  -- 🟢 hiện HUD khi bắt đầu kéo
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				menuDragging = false
+				coordHud.Visible = false  -- 🔴 ẩn khi thả
+			end
+		end)
+	end
 end)
+
 title.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        menuDragInput = input
-    end
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		menuDragInput = input
+	end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
-    if input == menuDragInput and menuDragging then updateMenu(input) end
+	if input == menuDragInput and menuDragging then
+		updateMenu(input)
+		local x = math.floor(menuFrame.Position.X.Offset)
+		local y = math.floor(menuFrame.Position.Y.Offset)
+		coordHud.Text = "X: " .. x .. "  Y: " .. y  -- 📍 Cập nhật tọa độ thật
+	end
 end)
 
 -- ====== FARM (AutoFarm) ======
