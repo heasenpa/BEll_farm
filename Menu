@@ -5,18 +5,31 @@ local LocalPlayer = Players.LocalPlayer
 
 -- ====== MENU GUI ======
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MyTopGui"
+screenGui.Name = "CustomMenuGUI"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global -- quan trọng!
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global  -- ✅ Cho phép đè lên GUI khác
+screenGui.DisplayOrder = 9999  -- ✅ Ưu tiên cao nhất
+screenGui.IgnoreGuiInset = true  -- ✅ Không bị lệch bởi topbar trên mobile
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- 🔼 Auto-đè GUI (luôn đưa GUI của bạn lên trên cùng)
+local playerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Ví dụ thêm 1 frame / button
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 100)
-frame.Position = UDim2.new(0.5, -100, 0.5, -50)
-frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-frame.ZIndex = 9999 -- cực cao để đè mọi thứ khác
-frame.Parent = screenGui
+-- Hàm đẩy GUI lên cùng
+local function bringToFront()
+    if screenGui and screenGui.Parent == playerGui then
+        screenGui.Parent = nil
+        screenGui.Parent = playerGui
+    end
+end
+
+-- Đẩy lên ngay khi load
+bringToFront()
+
+-- Mỗi khi có GUI khác xuất hiện, đẩy GUI của bạn lên lại
+playerGui.DescendantAdded:Connect(function(obj)
+    task.wait(0.05) -- đợi object đó load hẳn
+    bringToFront()
+end)
 
 -- Nút nhỏ mở menu
 local toggleButton = Instance.new("ImageButton")
