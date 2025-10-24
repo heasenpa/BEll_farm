@@ -29,7 +29,7 @@ btnCorner.Parent = toggleButton
 -- Menu chính
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 220, 0, 240)
-menuFrame.Position = UDim2.new(0.5, -110, 0.5, -90)
+menuFrame.Position = UDim2.new(0, 10, 0, 90)
 menuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 menuFrame.Visible = false
 menuFrame.Parent = screenGui
