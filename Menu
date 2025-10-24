@@ -7,10 +7,18 @@ local LocalPlayer = Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "CustomMenuGUI"
 screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global  -- ✅ Cho phép đè lên GUI khác
-screenGui.DisplayOrder = 9999  -- ✅ Ưu tiên cao nhất
-screenGui.IgnoreGuiInset = true  -- ✅ Không bị lệch bởi topbar trên mobile
-screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+screenGui.DisplayOrder = 9999
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = game:GetService("CoreGui")
+
+task.spawn(function()
+    while task.wait(5) do
+        if screenGui.Parent ~= game:GetService("CoreGui") then
+            screenGui.Parent = game:GetService("CoreGui")
+        end
+    end
+end)
 
 -- Nút nhỏ mở menu
 local toggleButton = Instance.new("ImageButton")
