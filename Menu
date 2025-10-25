@@ -11,25 +11,6 @@ screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global  -- ✅ Cho phép đè lê
 screenGui.DisplayOrder = 9999  -- ✅ Ưu tiên cao nhất
 screenGui.IgnoreGuiInset = true  -- ✅ Không bị lệch bởi topbar trên mobile
 screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
--- 🔼 Auto-đè GUI (luôn đưa GUI của bạn lên trên cùng)
-local playerGui = LocalPlayer:WaitForChild("PlayerGui")
-
--- Hàm đẩy GUI lên cùng
-local function bringToFront()
-    if screenGui and screenGui.Parent == playerGui then
-        screenGui.Parent = nil
-        screenGui.Parent = playerGui
-    end
-end
-
--- Đẩy lên ngay khi load
-bringToFront()
-
--- Mỗi khi có GUI khác xuất hiện, đẩy GUI của bạn lên lại
-playerGui.DescendantAdded:Connect(function(obj)
-    task.wait(0.05) -- đợi object đó load hẳn
-    bringToFront()
-end)
 
 -- Nút nhỏ mở menu
 local toggleButton = Instance.new("ImageButton")
@@ -48,7 +29,7 @@ btnCorner.Parent = toggleButton
 -- Menu chính
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 220, 0, 240)
-menuFrame.Position = UDim2.new(0, 100, 0, 50)
+menuFrame.Position = UDim2.new(0.5, -110, 0.5, -90)
 menuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 menuFrame.Visible = false
 menuFrame.Parent = screenGui
@@ -379,7 +360,7 @@ task.spawn(function()
         rateLabel.Text = string.format("Rate: %.1f / hour", rate)
         if rate < 100 then
             rateLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
-        elseif rate < 300 then
+        elseif rate < 500 then
             rateLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
         else
             rateLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
