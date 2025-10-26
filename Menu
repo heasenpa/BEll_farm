@@ -16,17 +16,13 @@ screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.5, -25, 0.5, -25)
-toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleButton.BackgroundTransparency = 1 -- nền trong suốt
 toggleButton.Image = "rbxassetid://88931815532131"
-toggleButton.ImageRectOffset = Vector2.new(0, 0)
-toggleButton.ImageRectSize = Vector2.new(0, 0)
-toggleButton.BackgroundTransparency = 1
 toggleButton.Parent = screenGui
 
 local btnCorner = Instance.new("UICorner")
 btnCorner.CornerRadius = UDim.new(0, 8)
 btnCorner.Parent = toggleButton
-
 -- Menu chính
 local menuFrame = Instance.new("Frame")
 menuFrame.Size = UDim2.new(0, 220, 0, 240)
