@@ -17,7 +17,7 @@ local toggleButton = Instance.new("ImageButton")
 toggleButton.Size = UDim2.new(0, 50, 0, 50)
 toggleButton.Position = UDim2.new(0.5, -25, 0.5, -25)
 toggleButton.BackgroundTransparency = 1 -- nền trong suốt
-toggleButton.Image = "rbxassetid://88931815532131"
+toggleButton.Image = "rbxassetid://6031094678"
 toggleButton.Parent = screenGui
 
 local btnCorner = Instance.new("UICorner")
