@@ -24,7 +24,7 @@ toggleButton.BackgroundTransparency = 1
 toggleButton.Parent = screenGui
 -- Viền tím cho nút nhỏ
 local buttonStroke = Instance.new("UIStroke")
-buttonStroke.Thickness = 2
+buttonStroke.Thickness = 3
 buttonStroke.Color = Color3.fromRGB(120, 0, 255)  -- tím cùng tone với menu
 buttonStroke.Transparency = 0
 buttonStroke.Parent = toggleButton
