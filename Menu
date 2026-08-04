@@ -1,4 +1,5 @@
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
@@ -127,78 +128,69 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ====== FARM (AutoFarm) ======
--- ====== FARM (Teleport Version) ======
 local farming = false
 
 local function getCoins()
-    for _, map in ipairs(workspace:GetChildren()) do
+    for _, map in pairs(workspace:GetChildren()) do
         if map:FindFirstChild("CoinContainer") then
             return map.CoinContainer
         end
     end
 end
 
-local function getRandomCoin()
+local function findNearestCoin()
+    local character = LocalPlayer.Character
+    if not character then return nil end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
     local container = getCoins()
-    if not container then
-        return nil
-    end
+    if not container then return nil end
 
-    local list = {}
-
-    for _, coin in ipairs(container:GetChildren()) do
-        if coin:IsA("BasePart") then
-            table.insert(list, coin)
+    local nearest, dist = nil, math.huge
+    for _, coin in pairs(container:GetChildren()) do
+        if coin:IsA("BasePart") and coin.Parent and coin:IsDescendantOf(workspace) then
+            local d = (hrp.Position - coin.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = coin
+            end
         end
     end
+    return nearest
+end
 
-    if #list == 0 then
-        return nil
-    end
+local function moveToCoin(coin)
+    local character = LocalPlayer.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp or not coin or not coin.Parent then return end
 
-    return list[math.random(1, #list)]
+    local distance = (hrp.Position - coin.Position).Magnitude
+    local speed = 20
+    local time = math.clamp(distance / speed, 0.5, 10)
+
+    local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
+    local finished = false
+    tween.Completed:Connect(function()
+        finished = true
+        if coin and coin.Parent then
+            coin:Destroy()
+        end
+    end)
+    tween:Play()
+
+    repeat task.wait() until finished
 end
 
 local function autoFarm()
-
     while farming do
-
-        local character = LocalPlayer.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
-
-        if not hrp then
-            task.wait(0.5)
-            continue
-        end
-
-        local coin = getRandomCoin()
-
-        if coin and coin.Parent then
-
-            local distance = (hrp.Position - coin.Position).Magnitude
-
-            -- Teleport lên trên coin
-            hrp.CFrame = coin.CFrame + Vector3.new(0, 2.5, 0)
-
-            -- Coin gần: 2 giây
-            -- Coin xa: 3 giây
-            local waitTime = (distance <= 35) and 2 or 3
-
-            local start = tick()
-
-            repeat
-                task.wait(0.1)
-            until
-                not farming
-                or not coin.Parent
-                or tick() - start >= waitTime
-
+        local coin = findNearestCoin()
+        if coin then
+            moveToCoin(coin)
         else
             task.wait(0.1)
         end
-
     end
-
 end
 
 -- ====== Toggle Farm (Switch đẹp) ======
