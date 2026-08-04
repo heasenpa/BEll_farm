@@ -139,6 +139,7 @@ local function getCoins()
 end
 
 local function getRandomCoin()
+if coin and coin.Parent then
     local container = getCoins()
     if not container then
         return nil
