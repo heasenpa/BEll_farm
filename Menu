@@ -131,10 +131,6 @@ end)
 local farming = false
 
 local function getCoins()
--- ====== FARM (Random Teleport Version) ======
-local farming = false
-
-local function getCoins()
     for _, map in ipairs(workspace:GetChildren()) do
         if map:FindFirstChild("CoinContainer") then
             return map.CoinContainer
