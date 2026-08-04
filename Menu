@@ -131,6 +131,10 @@ end)
 local farming = false
 
 local function getCoins()
+-- ====== FARM (Random Teleport Version) ======
+local farming = false
+
+local function getCoins()
     for _, map in ipairs(workspace:GetChildren()) do
         if map:FindFirstChild("CoinContainer") then
             return map.CoinContainer
@@ -139,25 +143,24 @@ local function getCoins()
 end
 
 local function getRandomCoin()
-if coin and coin.Parent then
     local container = getCoins()
     if not container then
         return nil
     end
 
-    local list = {}
+    local coins = {}
 
     for _, coin in ipairs(container:GetChildren()) do
         if coin:IsA("BasePart") and coin.Parent then
-            table.insert(list, coin)
+            table.insert(coins, coin)
         end
     end
 
-    if #list == 0 then
+    if #coins == 0 then
         return nil
     end
 
-    return list[math.random(1, #list)]
+    return coins[math.random(#coins)]
 end
 
 local function autoFarm()
@@ -174,43 +177,46 @@ local function autoFarm()
 
         local coin = getRandomCoin()
 
-        local distance = (hrp.Position - coin.Position).Magnitude
+        if coin and coin.Parent then
 
--- Teleport lên coin
-local basePos = coin.CFrame + Vector3.new(0, 2.5, 0)
-hrp.CFrame = basePos
+            local distance = (hrp.Position - coin.Position).Magnitude
 
--- Rung mạnh trong 0.6 giây đầu
-local shakeStart = tick()
+            -- Teleport lên coin
+            local basePos = coin.CFrame + Vector3.new(0, 2.5, 0)
+            hrp.CFrame = basePos
 
-while farming and coin.Parent and tick() - shakeStart < 0.6 do
-    hrp.CFrame = basePos * CFrame.new(
-        math.random(-20,20)/100,
-        0,
-        math.random(-20,20)/100
-    )
-    task.wait(0.05)
-end
+            -- Rung mạnh trong 0.6 giây đầu
+            local shakeStart = tick()
 
-local waitTime = (distance <= 35) and 2 or 3
+            while farming and coin.Parent and tick() - shakeStart < 0.6 do
+                hrp.CFrame = basePos * CFrame.new(
+                    math.random(-20,20) / 100,
+                    0,
+                    math.random(-20,20) / 100
+                )
+                task.wait(0.05)
+            end
 
-local start = tick()
+            -- Coin gần đợi 2s, coin xa đợi 3s
+            local waitTime = (distance <= 35) and 2 or 3
 
-repeat
-    task.wait(0.1)
+            local start = tick()
 
-    if coin.Parent then
-        hrp.CFrame = basePos * CFrame.new(
-            math.random(-15,15)/100,
-            0,
-            math.random(-15,15)/100
-        )
-    end
+            repeat
+                task.wait(0.1)
 
-until
-    not farming
-    or not coin.Parent
-    or tick() - start >= waitTime
+                if coin.Parent then
+                    hrp.CFrame = basePos * CFrame.new(
+                        math.random(-15,15) / 100,
+                        0,
+                        math.random(-15,15) / 100
+                    )
+                end
+
+            until
+                not farming
+                or not coin.Parent
+                or tick() - start >= waitTime
 
         else
             task.wait(0.1)
