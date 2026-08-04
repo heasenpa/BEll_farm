@@ -194,7 +194,7 @@ local function autoFarm()
             end
 
             -- Coin gần đợi 2s, coin xa đợi 3s
-            local waitTime = (distance <= 35) and 2 or 3
+            local waitTime = (distance <= 35) and 1 or 2
 
             local start = tick()
 
