@@ -173,24 +173,43 @@ local function autoFarm()
 
         local coin = getRandomCoin()
 
-        if coin and coin.Parent then
+        local distance = (hrp.Position - coin.Position).Magnitude
 
-            local distance = (hrp.Position - coin.Position).Magnitude
+-- Teleport lên coin
+local basePos = coin.CFrame + Vector3.new(0, 2.5, 0)
+hrp.CFrame = basePos
 
-            -- Teleport lên coin
-            hrp.CFrame = coin.CFrame + Vector3.new(0, 2.5, 0)
+-- Rung mạnh trong 0.6 giây đầu
+local shakeStart = tick()
 
-            -- Gần chờ 2s, xa chờ 3s
-            local waitTime = (distance <= 35) and 2 or 3
+while farming and coin.Parent and tick() - shakeStart < 0.6 do
+    hrp.CFrame = basePos * CFrame.new(
+        math.random(-20,20)/100,
+        0,
+        math.random(-20,20)/100
+    )
+    task.wait(0.05)
+end
 
-            local start = tick()
+local waitTime = (distance <= 35) and 2 or 3
 
-            repeat
-                task.wait(0.1)
-            until
-                not farming
-                or not coin.Parent
-                or tick() - start >= waitTime
+local start = tick()
+
+repeat
+    task.wait(0.1)
+
+    if coin.Parent then
+        hrp.CFrame = basePos * CFrame.new(
+            math.random(-15,15)/100,
+            0,
+            math.random(-15,15)/100
+        )
+    end
+
+until
+    not farming
+    or not coin.Parent
+    or tick() - start >= waitTime
 
         else
             task.wait(0.1)
