@@ -167,7 +167,7 @@ local function autoFarm()
         local hrp = character and character:FindFirstChild("HumanoidRootPart")
 
         if not hrp then
-            task.wait(0.5)
+            task.wait(0.2)
             continue
         end
 
@@ -177,45 +177,45 @@ local function autoFarm()
 
             local distance = (hrp.Position - coin.Position).Magnitude
 
-            -- Teleport lên coin
-            local basePos = coin.CFrame + Vector3.new(0, 2.5, 0)
+            -- Tele lên coin (cao 2 studs)
+            local basePos = coin.CFrame + Vector3.new(0,2,0)
             hrp.CFrame = basePos
 
-            -- Rung mạnh trong 0.6 giây đầu
+            -- Giật nhanh 0.25s
             local shakeStart = tick()
 
-            while farming and coin.Parent and tick() - shakeStart < 0.6 do
+            while farming and coin.Parent and tick()-shakeStart < 0.25 do
                 hrp.CFrame = basePos * CFrame.new(
-                    math.random(-20,20) / 100,
-                    0,
-                    math.random(-20,20) / 100
+                    math.random(-25,25)/100,
+                    math.random(-5,5)/100,
+                    math.random(-25,25)/100
                 )
-                task.wait(0.05)
+                task.wait(0.03)
             end
 
-            -- Coin gần đợi 2s, coin xa đợi 3s
-            local waitTime = (distance <= 35) and 1 or 2
+            -- Thời gian đứng tại coin
+            local waitTime = distance <= 35 and 1.2 or 2
 
             local start = tick()
 
             repeat
-                task.wait(0.1)
+                task.wait(0.05)
 
                 if coin.Parent then
                     hrp.CFrame = basePos * CFrame.new(
-                        math.random(-15,15) / 100,
-                        0,
-                        math.random(-15,15) / 100
+                        math.random(-20,20)/100,
+                        math.random(-5,5)/100,
+                        math.random(-20,20)/100
                     )
                 end
 
             until
                 not farming
                 or not coin.Parent
-                or tick() - start >= waitTime
+                or tick()-start >= waitTime
 
         else
-            task.wait(0.1)
+            task.wait(0.05)
         end
 
     end
