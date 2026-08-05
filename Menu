@@ -182,16 +182,16 @@ local function autoFarm()
             hrp.CFrame = basePos
 
             -- Giật nhanh 0.25s
-            local shakeStart = tick()
+            -- Đứng trên coin
+hrp.CFrame = basePos
+task.wait(0.05)
 
-            while farming and coin.Parent and tick()-shakeStart < 0.25 do
-                hrp.CFrame = basePos * CFrame.new(
-                    math.random(-25,25)/100,
-                    math.random(-5,5)/100,
-                    math.random(-25,25)/100
-                )
-                task.wait(0.03)
-            end
+-- Hạ xuống 2 studs
+hrp.CFrame = basePos - Vector3.new(0, 2, 0)
+task.wait(0.08)
+
+-- Trở lại vị trí coin
+hrp.CFrame = basePos
 
             -- Thời gian đứng tại coin
             local waitTime = distance <= 35 and 2 or 3
@@ -199,22 +199,11 @@ local function autoFarm()
             local start = tick()
 
             repeat
-                task.wait(0.05)
-
-                if coin.Parent then
-    hrp.CFrame = basePos + Vector3.new(0, 2, 0)
-    task.wait(0.06)
-
-    hrp.CFrame = basePos + Vector3.new(0, 1, 0)
-    task.wait(0.06)
-
-    hrp.CFrame = basePos
-end
-
-            until
-                not farming
-                or not coin.Parent
-                or tick()-start >= waitTime
+    task.wait(0.05)
+until
+    not farming
+    or not coin.Parent
+    or tick() - start >= waitTime
 
         else
             task.wait(0.05)
