@@ -194,7 +194,7 @@ task.wait(0.08)
 hrp.CFrame = basePos
 
             -- Thời gian đứng tại coin
-            local waitTime = distance <= 35 and 1.5 or 2.5
+            local waitTime = distance <= 35 and 2 or 2.5
 
             local start = tick()
 
