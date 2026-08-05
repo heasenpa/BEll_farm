@@ -202,12 +202,14 @@ local function autoFarm()
                 task.wait(0.05)
 
                 if coin.Parent then
-                    hrp.CFrame = basePos * CFrame.new(
-                        math.random(-20,20)/100,
-                        math.random(-5,5)/100,
-                        math.random(-20,20)/100
-                    )
-                end
+    hrp.CFrame = basePos + Vector3.new(0, 2, 0)
+    task.wait(0.06)
+
+    hrp.CFrame = basePos + Vector3.new(0, 1, 0)
+    task.wait(0.06)
+
+    hrp.CFrame = basePos
+end
 
             until
                 not farming
