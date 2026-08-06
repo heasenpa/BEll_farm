@@ -127,11 +127,11 @@ UserInputService.InputChanged:Connect(function(input)
     if input == menuDragInput and menuDragging then updateMenu(input) end
 end)
 
--- ====== FARM (Random Teleport Version) ======
+-- ====== FARM (AutoFarm) ======
 local farming = false
 
 local function getCoins()
-    for _, map in ipairs(workspace:GetChildren()) do
+    for _, map in pairs(workspace:GetChildren()) do
         if map:FindFirstChild("CoinContainer") then
             return map.CoinContainer
         end
@@ -147,7 +147,9 @@ local function getRandomCoin()
     local coins = {}
 
     for _, coin in ipairs(container:GetChildren()) do
-        if coin:IsA("BasePart") and coin.Parent then
+        if coin:IsA("BasePart")
+        and coin.Parent
+        and coin:IsDescendantOf(workspace) then
             table.insert(coins, coin)
         end
     end
@@ -156,61 +158,41 @@ local function getRandomCoin()
         return nil
     end
 
-    return coins[math.random(#coins)]
+    return coins[math.random(1, #coins)]
+end
+
+local function moveToCoin(coin)
+    local character = LocalPlayer.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp or not coin or not coin.Parent then return end
+
+    local distance = (hrp.Position - coin.Position).Magnitude
+    local speed = 20
+    local time = math.clamp(distance / speed, 0.5, 10)
+
+    local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
+    local finished = false
+    tween.Completed:Connect(function()
+        finished = true
+        if coin and coin.Parent then
+            coin:Destroy()
+        end
+    end)
+    tween:Play()
+
+    repeat task.wait() until finished
 end
 
 local function autoFarm()
-
     while farming do
-
-        local character = LocalPlayer.Character
-        local hrp = character and character:FindFirstChild("HumanoidRootPart")
-
-        if not hrp then
-            task.wait(0.2)
-            continue
-        end
-
         local coin = getRandomCoin()
-
-        if coin and coin.Parent then
-
-            local distance = (hrp.Position - coin.Position).Magnitude
-
-            -- Tele lên coin (cao 2 studs)
-            local basePos = coin.CFrame + Vector3.new(0,2,0)
-            hrp.CFrame = basePos
-
-            -- Giật nhanh 0.25s
-            -- Đứng trên coin
-hrp.CFrame = basePos
-task.wait(0.05)
-
--- Hạ xuống 2 studs
-hrp.CFrame = basePos - Vector3.new(0, 2, 0)
-task.wait(0.08)
-
--- Trở lại vị trí coin
-hrp.CFrame = basePos
-
-            -- Thời gian đứng tại coin
-            local waitTime = distance <= 35 and 2 or 2
-
-            local start = tick()
-
-            repeat
-    task.wait(0.05)
-until
-    not farming
-    or not coin.Parent
-    or tick() - start >= waitTime
-
+        if coin then
+            moveToCoin(coin)
         else
-            task.wait(0.05)
+            task.wait(0.1)
         end
-
     end
-
 end
 
 -- ====== Toggle Farm (Switch đẹp) ======
