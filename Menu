@@ -131,116 +131,60 @@ end)
 local farming = false
 
 local function getCoins()
- for _, map in pairs(workspace:GetChildren()) do
+    for _, map in pairs(workspace:GetChildren()) do
         if map:FindFirstChild("CoinContainer") then
             return map.CoinContainer
         end
     end
 end
-local function findRandomCoin()
+
+local function findNearestCoin()
     local character = LocalPlayer.Character
     if not character then return nil end
-
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-
     local container = getCoins()
     if not container then return nil end
 
-    local coins = {}
-
-    for _, coin in ipairs(container:GetChildren()) do
-        if coin:IsA("BasePart") and coin.Parent then
-
-            local blocked = false
-
-            for _, plr in ipairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer then
-                    local char = plr.Character
-                    local root = char and char:FindFirstChild("HumanoidRootPart")
-
-                    if root then
-                        local myDist = (hrp.Position - coin.Position).Magnitude
-                        local otherDist = (root.Position - coin.Position).Magnitude
-
-                        -- Người khác gần coin hơn mình
-                        if otherDist + 3 < myDist then
-                            blocked = true
-                            break
-                        end
-                    end
-                end
-            end
-
-            if not blocked then
-                table.insert(coins, coin)
+    local nearest, dist = nil, math.huge
+    for _, coin in pairs(container:GetChildren()) do
+        if coin:IsA("BasePart") and coin.Parent and coin:IsDescendantOf(workspace) then
+            local d = (hrp.Position - coin.Position).Magnitude
+            if d < dist then
+                dist = d
+                nearest = coin
             end
         end
     end
-
-    if #coins == 0 then
-        return nil
-    end
-
-    return coins[math.random(#coins)]
+    return nearest
 end
 
 local function moveToCoin(coin)
     local character = LocalPlayer.Character
     if not character then return end
-
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp or not coin or not coin.Parent then return end
 
     local distance = (hrp.Position - coin.Position).Magnitude
-    local speed = 23
+    local speed = 20
     local time = math.clamp(distance / speed, 0.5, 10)
 
-    local tween = TweenService:Create(
-        hrp,
-        TweenInfo.new(time, Enum.EasingStyle.Linear),
-        {CFrame = coin.CFrame + Vector3.new(0,3,0)}
-    )
-
+    local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
     local finished = false
-
     tween.Completed:Connect(function()
         finished = true
+        if coin and coin.Parent then
+            coin:Destroy()
+        end
     end)
-
     tween:Play()
 
-    while not finished do
-        task.wait(0.05)
-
-        if not coin.Parent then
-            tween:Cancel()
-            return
-        end
-
-        local myDist = (hrp.Position - coin.Position).Magnitude
-
-        for _, plr in ipairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer then
-                local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-
-                if root then
-                    local otherDist = (root.Position - coin.Position).Magnitude
-
-                    -- Người khác gần coin hơn mình
-                    if otherDist + 3 < myDist then
-                        tween:Cancel()
-                        return
-                    end
-                end
-            end
-        end
-    end
+    repeat task.wait() until finished
 end
 
 local function autoFarm()
     while farming do
-        local coin = findRandomCoin()
+        local coin = findNearestCoin()
         if coin then
             moveToCoin(coin)
         else
@@ -318,6 +262,9 @@ task.spawn(autoFarm)
 
 -- ====== Coin Counter GUI (gắn vào menuFrame) ======
 _G.TotalCoinsFarmed = _G.TotalCoinsFarmed or 0
+local startCheckTime = tick()
+local startCoinCount = _G.TotalCoinsFarmed
+local lastCoinTime = tick()
 
 local function setupCoinGUI()
     local label = menuFrame:FindFirstChild("CoinLabel")
@@ -354,8 +301,9 @@ local function hookGameCoinLabel(label)
     local function updateCoins()
         local amount = tonumber(coinLabel.Text) or 0
         if amount > lastAmount then
-            _G.TotalCoinsFarmed += (amount - lastAmount)
-        end
+    _G.TotalCoinsFarmed += (amount - lastAmount)
+    lastCoinTime = tick() -- Reset khi vừa nhặt được coin
+end
         lastAmount = amount
 
         label.Text = "Coins: " .. amount .. "/40 | Total: " .. _G.TotalCoinsFarmed
@@ -483,6 +431,34 @@ task.spawn(function()
 			totalCoinLabel.Text = "Coin Bag: ???"
 		end
 	end
+end)
+
+task.spawn(function()
+    while task.wait(5) do
+
+        -- 5 phút không nhặt được coin
+        if tick() - lastCoinTime >= 300 then
+            print("No coin for 5 minutes -> Change Server")
+            -- Đổi server ở đây
+            break
+        end
+
+        -- Sau 10 phút
+        if tick() - startCheckTime >= 600 then
+
+            local gained = _G.TotalCoinsFarmed - startCoinCount
+
+            if gained < 70 then
+                print("Only farmed "..gained.." coins in 10 minutes -> Change Server")
+                -- Đổi server ở đây
+                break
+            end
+
+            -- Reset chu kỳ kiểm tra tiếp theo
+            startCheckTime = tick()
+            startCoinCount = _G.TotalCoinsFarmed
+        end
+    end
 end)
 
 
