@@ -369,7 +369,26 @@ end
 end
 
 local coinLabelUI = setupCoinGUI()
-hookGameCoinLabel(coinLabelUI)
+local coinLabelUI = setupCoinGUI()
+
+task.spawn(function()
+    local start = tick()
+
+    while task.wait(1) do
+        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+
+        if playerGui and playerGui:FindFirstChild("MainGUI") then
+            hookGameCoinLabel(coinLabelUI)
+            break
+        end
+
+        if tick() - start >= 300 then
+            warn("MainGUI not found after 5 minutes. Server Hop...")
+            ServerHop()
+            break
+        end
+    end
+end)
 
 -- 🌟 Thêm sau phần hookGameCoinLabel(coinLabelUI)
 -- (Dán ngay bên dưới dòng “hookGameCoinLabel(coinLabelUI)”)
@@ -457,9 +476,25 @@ hopTimerLabel.Text = string.format(
 end)
 
 LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(1)
-    local label = setupCoinGUI()
-    hookGameCoinLabel(label)
+    task.spawn(function()
+        local start = tick()
+
+        while task.wait(1) do
+            local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+
+            if playerGui and playerGui:FindFirstChild("MainGUI") then
+                local label = setupCoinGUI()
+                hookGameCoinLabel(label)
+                break
+            end
+
+            if tick() - start >= 300 then
+                warn("MainGUI not found after 5 minutes. Server Hop...")
+                ServerHop()
+                break
+            end
+        end
+    end)
 end)
 
 -- ====== HIỂN THỊ TỔNG COIN BAG ======
