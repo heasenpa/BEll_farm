@@ -188,6 +188,7 @@ end
 local function moveToCoin(coin)
     local character = LocalPlayer.Character
     if not character then return end
+
     local hrp = character:FindFirstChild("HumanoidRootPart")
     if not hrp or not coin or not coin.Parent then return end
 
@@ -195,32 +196,42 @@ local function moveToCoin(coin)
     local speed = 23
     local time = math.clamp(distance / speed, 0.5, 10)
 
-    local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
+    local tween = TweenService:Create(
+        hrp,
+        TweenInfo.new(time, Enum.EasingStyle.Linear),
+        {CFrame = coin.CFrame + Vector3.new(0,3,0)}
+    )
+
     local finished = false
+
     tween.Completed:Connect(function()
         finished = true
-        if coin and coin.Parent then
-            coin:Destroy()
-        end
     end)
+
     tween:Play()
 
-    while farming and coin.Parent do
-    task.wait(0.1)
+    while not finished do
+        task.wait(0.05)
 
-    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then break end
+        if not coin.Parent then
+            tween:Cancel()
+            return
+        end
 
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= LocalPlayer then
-            local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if root then
-                local myDist = (hrp.Position - coin.Position).Magnitude
-                local otherDist = (root.Position - coin.Position).Magnitude
+        local myDist = (hrp.Position - coin.Position).Magnitude
 
-                if otherDist + 3 < myDist then
-                    tween:Cancel()
-                    return
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer then
+                local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+
+                if root then
+                    local otherDist = (root.Position - coin.Position).Magnitude
+
+                    -- Người khác gần coin hơn mình
+                    if otherDist + 3 < myDist then
+                        tween:Cancel()
+                        return
+                    end
                 end
             end
         end
