@@ -309,6 +309,8 @@ _G.TotalCoinsFarmed = _G.TotalCoinsFarmed or 0
 local startCheckTime = tick()
 local startCoinCount = _G.TotalCoinsFarmed
 local lastCoinTime = tick()
+-- Server Hop Timer
+local serverHopStart = tick()
 
 local function setupCoinGUI()
     local label = menuFrame:FindFirstChild("CoinLabel")
@@ -401,6 +403,17 @@ rateLabel.TextSize = 16
 rateLabel.Font = Enum.Font.SourceSansBold
 rateLabel.Text = "Rate: 0 / hour"
 rateLabel.Parent = menuFrame
+local hopTimerLabel = Instance.new("TextLabel")
+hopTimerLabel.Name = "HopTimer"
+hopTimerLabel.Size = UDim2.new(1,-20,0,30)
+hopTimerLabel.Position = UDim2.new(0,10,0,30)
+hopTimerLabel.BackgroundColor3 = Color3.fromRGB(30,30,30)
+hopTimerLabel.BackgroundTransparency = 0.2
+hopTimerLabel.TextColor3 = Color3.fromRGB(255,170,0)
+hopTimerLabel.Font = Enum.Font.SourceSansBold
+hopTimerLabel.TextSize = 16
+hopTimerLabel.Text = "ServerHop: 00:00"
+hopTimerLabel.Parent = menuFrame
 
 -- Cập nhật tốc độ trung bình mỗi giây
 task.spawn(function()
@@ -431,6 +444,15 @@ task.spawn(function()
         local minutes = math.floor((elapsed % 3600) / 60)
         local seconds = math.floor(elapsed % 60)
         timerLabel.Text = string.format("Time: %02d:%02d:%02d", hours, minutes, seconds)
+local hopElapsed = tick() - serverHopStart
+local m = math.floor(hopElapsed/60)
+local s = math.floor(hopElapsed%60)
+
+hopTimerLabel.Text = string.format(
+    "ServerHop: %02d:%02d",
+    m,
+    s
+)
     end
 end)
 
@@ -488,7 +510,7 @@ task.spawn(function()
         end
 
         -- Sau 10 phút
-        if tick() - startCheckTime >= 600 then
+        if tick() - serverHopStart >= 600 then
 
             local gained = _G.TotalCoinsFarmed - startCoinCount
 
