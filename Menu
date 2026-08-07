@@ -205,35 +205,52 @@ end
 
 local function moveToCoin(coin)
     local character = LocalPlayer.Character
-    if not character then return end
+    if not character then return false end
+
     local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp or not coin or not coin.Parent then return end
+    if not hrp or not coin or not coin.Parent then
+        return false
+    end
 
     local distance = (hrp.Position - coin.Position).Magnitude
     local speed = 20
-    local time = math.clamp(distance / speed, 0.5, 10)
+    local time = math.clamp(distance / speed,0.5,10)
 
-    local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
-    local finished = false
-    tween.Completed:Connect(function()
-        finished = true
-        if coin and coin.Parent then
-            coin:Destroy()
-        end
-    end)
+    local tween = TweenService:Create(
+        hrp,
+        TweenInfo.new(time,Enum.EasingStyle.Linear),
+        {
+            CFrame = coin.CFrame + Vector3.new(0,3,0)
+        }
+    )
+
     tween:Play()
 
-    repeat task.wait() until finished
+    while tween.PlaybackState == Enum.PlaybackState.Playing do
+
+        -- Coin biến mất
+        if not coin.Parent or not coin:IsDescendantOf(workspace) then
+            tween:Cancel()
+            return false
+        end
+
+        task.wait(0.05)
+    end
+
+    return true
 end
 
 local function autoFarm()
     while farming do
+
         local coin = findNearestCoin()
+
         if coin then
             moveToCoin(coin)
         else
             task.wait(0.1)
         end
+
     end
 end
 
