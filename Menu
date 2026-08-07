@@ -131,26 +131,44 @@ end)
 local farming = false
 
 local function getCoins()
-    for _, map in pairs(workspace:GetChildren()) do
-        if map:FindFirstChild("CoinContainer") then
-            return map.CoinContainer
-        end
-    end
-end
+local function findRandomCoin()
+    local character = LocalPlayer.Character
+    if not character then return nil end
 
-local function getRandomCoin()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return nil end
+
     local container = getCoins()
-    if not container then
-        return nil
-    end
+    if not container then return nil end
 
     local coins = {}
 
     for _, coin in ipairs(container:GetChildren()) do
-        if coin:IsA("BasePart")
-        and coin.Parent
-        and coin:IsDescendantOf(workspace) then
-            table.insert(coins, coin)
+        if coin:IsA("BasePart") and coin.Parent then
+
+            local blocked = false
+
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer then
+                    local char = plr.Character
+                    local root = char and char:FindFirstChild("HumanoidRootPart")
+
+                    if root then
+                        local myDist = (hrp.Position - coin.Position).Magnitude
+                        local otherDist = (root.Position - coin.Position).Magnitude
+
+                        -- Người khác gần coin hơn mình
+                        if otherDist + 3 < myDist then
+                            blocked = true
+                            break
+                        end
+                    end
+                end
+            end
+
+            if not blocked then
+                table.insert(coins, coin)
+            end
         end
     end
 
@@ -158,7 +176,7 @@ local function getRandomCoin()
         return nil
     end
 
-    return coins[math.random(1, #coins)]
+    return coins[math.random(#coins)]
 end
 
 local function moveToCoin(coin)
@@ -186,7 +204,7 @@ end
 
 local function autoFarm()
     while farming do
-        local coin = getRandomCoin()
+        local coin = findRandomCoin()
         if coin then
             moveToCoin(coin)
         else
