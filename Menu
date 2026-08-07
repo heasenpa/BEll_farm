@@ -505,6 +505,7 @@ task.spawn(function()
         -- 5 phút không nhặt được coin
         if tick() - lastCoinTime >= 300 then
             warn("5 minutes without coin. Server Hop...")
+serverHopStart = tick()
             ServerHop()
             break
         end
@@ -523,6 +524,7 @@ task.spawn(function()
             -- Reset chu kỳ kiểm tra tiếp theo
             startCheckTime = tick()
             startCoinCount = _G.TotalCoinsFarmed
+            serverHopStart = tick()
 
         end
     end
