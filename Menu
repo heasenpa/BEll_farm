@@ -210,7 +210,7 @@ local function moveToCoin(coin)
     if not hrp or not coin or not coin.Parent then return end
 
     local distance = (hrp.Position - coin.Position).Magnitude
-    local speed = 22
+    local speed = 20
     local time = math.clamp(distance / speed, 0.5, 10)
 
     local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = coin.CFrame + Vector3.new(0,3,0)})
@@ -309,8 +309,6 @@ _G.TotalCoinsFarmed = _G.TotalCoinsFarmed or 0
 local startCheckTime = tick()
 local startCoinCount = _G.TotalCoinsFarmed
 local lastCoinTime = tick()
--- Server Hop Timer
-local serverHopStart = tick()
 
 local function setupCoinGUI()
     local label = menuFrame:FindFirstChild("CoinLabel")
@@ -331,8 +329,15 @@ local function setupCoinGUI()
 end
 
 local function hookGameCoinLabel(label)
-    local coinLabel = LocalPlayer:WaitForChild("PlayerGui")
-        :WaitForChild("MainGUI")
+
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+    local mainGui = playerGui:FindFirstChild("MainGUI")
+
+    if not mainGui then
+        return
+    end
+
+    local coinLabel = mainGui
         :WaitForChild("Lobby")
         :WaitForChild("Dock")
         :WaitForChild("CoinBags")
@@ -341,6 +346,7 @@ local function hookGameCoinLabel(label)
         :WaitForChild("CurrencyFrame")
         :WaitForChild("Icon")
         :WaitForChild("Coins")
+
 
     local lastAmount = tonumber(coinLabel.Text) or 0
 
@@ -369,24 +375,14 @@ end
 end
 
 local coinLabelUI = setupCoinGUI()
-local coinLabelUI = setupCoinGUI()
 
 task.spawn(function()
-    local start = tick()
-
-    while task.wait(1) do
-        local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-
-        if playerGui and playerGui:FindFirstChild("MainGUI") then
+    while true do
+        if LocalPlayer.PlayerGui:FindFirstChild("MainGUI") then
             hookGameCoinLabel(coinLabelUI)
             break
         end
-
-        if tick() - start >= 300 then
-            warn("MainGUI not found after 5 minutes. Server Hop...")
-            ServerHop()
-            break
-        end
+        task.wait(1)
     end
 end)
 
@@ -422,17 +418,6 @@ rateLabel.TextSize = 16
 rateLabel.Font = Enum.Font.SourceSansBold
 rateLabel.Text = "Rate: 0 / hour"
 rateLabel.Parent = menuFrame
-local hopTimerLabel = Instance.new("TextLabel")
-hopTimerLabel.Name = "HopTimer"
-hopTimerLabel.Size = UDim2.new(1,-20,0,30)
-hopTimerLabel.Position = UDim2.new(0,10,0,30)
-hopTimerLabel.BackgroundColor3 = Color3.fromRGB(30,30,30)
-hopTimerLabel.BackgroundTransparency = 0.2
-hopTimerLabel.TextColor3 = Color3.fromRGB(255,170,0)
-hopTimerLabel.Font = Enum.Font.SourceSansBold
-hopTimerLabel.TextSize = 16
-hopTimerLabel.Text = "ServerHop: 00:00"
-hopTimerLabel.Parent = menuFrame
 
 -- Cập nhật tốc độ trung bình mỗi giây
 task.spawn(function()
@@ -463,36 +448,21 @@ task.spawn(function()
         local minutes = math.floor((elapsed % 3600) / 60)
         local seconds = math.floor(elapsed % 60)
         timerLabel.Text = string.format("Time: %02d:%02d:%02d", hours, minutes, seconds)
-local hopElapsed = tick() - serverHopStart
-local m = math.floor(hopElapsed/60)
-local s = math.floor(hopElapsed%60)
-
-hopTimerLabel.Text = string.format(
-    "ServerHop: %02d:%02d",
-    m,
-    s
-)
     end
 end)
 
 LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+
+    local label = setupCoinGUI()
+
     task.spawn(function()
-        local start = tick()
-
-        while task.wait(1) do
-            local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
-
-            if playerGui and playerGui:FindFirstChild("MainGUI") then
-                local label = setupCoinGUI()
+        while true do
+            if LocalPlayer.PlayerGui:FindFirstChild("MainGUI") then
                 hookGameCoinLabel(label)
                 break
             end
-
-            if tick() - start >= 300 then
-                warn("MainGUI not found after 5 minutes. Server Hop...")
-                ServerHop()
-                break
-            end
+            task.wait(1)
         end
     end)
 end)
@@ -540,13 +510,12 @@ task.spawn(function()
         -- 5 phút không nhặt được coin
         if tick() - lastCoinTime >= 300 then
             warn("5 minutes without coin. Server Hop...")
-serverHopStart = tick()
             ServerHop()
             break
         end
 
         -- Sau 10 phút
-        if tick() - serverHopStart >= 600 then
+        if tick() - startCheckTime >= 600 then
 
             local gained = _G.TotalCoinsFarmed - startCoinCount
 
@@ -559,11 +528,7 @@ serverHopStart = tick()
             -- Reset chu kỳ kiểm tra tiếp theo
             startCheckTime = tick()
             startCoinCount = _G.TotalCoinsFarmed
-            serverHopStart = tick()
 
         end
     end
 end)
-
-
-
