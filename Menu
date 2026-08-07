@@ -131,6 +131,12 @@ end)
 local farming = false
 
 local function getCoins()
+ for _, map in pairs(workspace:GetChildren()) do
+        if map:FindFirstChild("CoinContainer") then
+            return map.CoinContainer
+        end
+    end
+end
 local function findRandomCoin()
     local character = LocalPlayer.Character
     if not character then return nil end
