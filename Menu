@@ -2,6 +2,38 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+
+local function ServerHop()
+    local PlaceId = game.PlaceId
+    local JobId = game.JobId
+
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(
+            game:HttpGet(
+                "https://games.roblox.com/v1/games/" ..
+                PlaceId ..
+                "/servers/Public?sortOrder=Asc&limit=100"
+            )
+        )
+    end)
+
+    if success and result and result.data then
+        local servers = {}
+
+        for _, server in ipairs(result.data) do
+            if server.playing < server.maxPlayers and server.id ~= JobId then
+                table.insert(servers, server.id)
+            end
+        end
+
+        if #servers > 0 then
+            local target = servers[math.random(#servers)]
+            TeleportService:TeleportToPlaceInstance(PlaceId, target, LocalPlayer)
+        end
+    end
+end
 
 -- ====== MENU GUI ======
 local screenGui = Instance.new("ScreenGui")
@@ -438,9 +470,9 @@ task.spawn(function()
 
         -- 5 phút không nhặt được coin
         if tick() - lastCoinTime >= 300 then
-            print("No coin for 5 minutes -> Change Server")
-            -- Đổi server ở đây
-            break
+            warn("5 minutes without coin. Server Hop...")
+ServerHop()
+break
         end
 
         -- Sau 10 phút
@@ -449,10 +481,9 @@ task.spawn(function()
             local gained = _G.TotalCoinsFarmed - startCoinCount
 
             if gained < 70 then
-                print("Only farmed "..gained.." coins in 10 minutes -> Change Server")
-                -- Đổi server ở đây
-                break
-            end
+                warn("Only "..gained.." coins in 10 minutes. Server Hop...")
+ServerHop()
+break
 
             -- Reset chu kỳ kiểm tra tiếp theo
             startCheckTime = tick()
