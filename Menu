@@ -5,6 +5,11 @@ local LocalPlayer = Players.LocalPlayer
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 
+local LastServer = TeleportService:GetLocalPlayerTeleportData()
+if type(LastServer) ~= "table" then
+    LastServer = {}
+end
+
 local function ServerHop()
     local PlaceId = game.PlaceId
     local JobId = game.JobId
@@ -23,14 +28,21 @@ local function ServerHop()
         local servers = {}
 
         for _, server in ipairs(result.data) do
-            if server.playing < server.maxPlayers and server.id ~= JobId then
-                table.insert(servers, server.id)
-            end
-        end
+    if server.playing < server.maxPlayers
+    and server.id ~= JobId
+    and server.id ~= LastServer.id then
+        table.insert(servers, server.id)
+    end
+end
 
         if #servers > 0 then
             local target = servers[math.random(#servers)]
-            TeleportService:TeleportToPlaceInstance(PlaceId, target, LocalPlayer)
+            TeleportService:TeleportToPlaceInstance(
+    PlaceId,
+    target,
+    LocalPlayer,
+    {id = JobId}
+)
         end
     end
 end
@@ -471,8 +483,8 @@ task.spawn(function()
         -- 5 phút không nhặt được coin
         if tick() - lastCoinTime >= 300 then
             warn("5 minutes without coin. Server Hop...")
-ServerHop()
-break
+            ServerHop()
+            break
         end
 
         -- Sau 10 phút
@@ -482,16 +494,17 @@ break
 
             if gained < 70 then
                 warn("Only "..gained.." coins in 10 minutes. Server Hop...")
-ServerHop()
-break
+                ServerHop()
+                break
+            end
 
             -- Reset chu kỳ kiểm tra tiếp theo
             startCheckTime = tick()
             startCoinCount = _G.TotalCoinsFarmed
+
         end
     end
 end)
-
 
 
 
