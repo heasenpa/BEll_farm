@@ -205,7 +205,26 @@ local function moveToCoin(coin)
     end)
     tween:Play()
 
-    repeat task.wait() until finished
+    while farming and coin.Parent do
+    task.wait(0.1)
+
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then break end
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local root = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local myDist = (hrp.Position - coin.Position).Magnitude
+                local otherDist = (root.Position - coin.Position).Magnitude
+
+                if otherDist + 3 < myDist then
+                    tween:Cancel()
+                    return
+                end
+            end
+        end
+    end
 end
 
 local function autoFarm()
