@@ -521,38 +521,43 @@ end)
 task.spawn(function()
     while task.wait(5) do
 
-        -- 5 phút không nhặt được coin
+        -- ==========================================
+        -- 5 PHÚT KHÔNG NHẶT ĐƯỢC COIN
+        -- ==========================================
         if tick() - lastCoinTime >= 300 then
-    warn("5 minutes without coin. Server Hop...")
+            warn("5 minutes without coin. Server Hop...")
 
-    -- Reset toàn bộ bộ đếm ngay khi kích hoạt Hop
-    startCheckTime = tick()
-    startCoinCount = _G.TotalCoinsFarmed
-    lastCoinTime = tick()
+            -- Reset ngay khi kích hoạt Hop
+            startCheckTime = tick()
+            startCoinCount = _G.TotalCoinsFarmed
+            lastCoinTime = tick()
 
-    ServerHop()
-end
+            ServerHop()
+        end
 
-        -- Sau 10 phút
+
+        -- ==========================================
+        -- KIỂM TRA MỖI CHU KỲ 10 PHÚT
+        -- ==========================================
         if tick() - startCheckTime >= 600 then
 
             local gained = _G.TotalCoinsFarmed - startCoinCount
 
             if gained < 70 then
-    warn("Only "..gained.." coins in 10 minutes. Server Hop...")
+                warn("Only "..gained.." coins in 10 minutes. Server Hop...")
 
-    -- Reset chu kỳ ngay khi kích hoạt Hop
-    startCheckTime = tick()
-    startCoinCount = _G.TotalCoinsFarmed
-    lastCoinTime = tick()
+                -- Reset ngay khi kích hoạt Hop
+                startCheckTime = tick()
+                startCoinCount = _G.TotalCoinsFarmed
+                lastCoinTime = tick()
 
-    ServerHop()
-end
+                ServerHop()
 
-            -- Reset chu kỳ kiểm tra tiếp theo
-            startCheckTime = tick()
-            startCoinCount = _G.TotalCoinsFarmed
-
+            else
+                -- Đủ 70 coin → bắt đầu chu kỳ 10 phút mới
+                startCheckTime = tick()
+                startCoinCount = _G.TotalCoinsFarmed
+            end
         end
     end
 end)
