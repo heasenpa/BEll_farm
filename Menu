@@ -213,7 +213,7 @@ local function moveToCoin(coin)
     end
 
     local distance = (hrp.Position - coin.Position).Magnitude
-    local speed = 20
+    local speed = 23
     local time = math.clamp(distance / speed, 0.5, 10)
 
     local tween = TweenService:Create(
